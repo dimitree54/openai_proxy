@@ -38,4 +38,4 @@ jobs:
           pkill -f gunicorn || true  # If you use gunicorn
 
           # Start the new version (with gunicorn as an example)
-          nohup gunicorn server:app -w 4 -b 0.0.0.0:8000 > gunicorn.log 2>&1 &
+          screen -dmS gunicorn_session gunicorn server:app -w 4 -b 0.0.0.0:8000
