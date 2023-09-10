@@ -20,13 +20,21 @@ jobs:
         password: ${{ secrets.VULTR_VM_PASSWORD }}   # Included password as per your setup
         script: |
           sudo ufw allow 8000
+          sudo apt-get update && apt-get upgrade -y
+          sudo apt-get install -y git python3-venv
+          
           export REPO_DIR=/root/openai_proxy
           rm -rf $REPO_DIR
           git clone -b ${{ GITHUB.REF_NAME }} https://github.com/dimitree54/openai_proxy.git $REPO_DIR
           cd $REPO_DIR
           
+          python3 -m venv venv
+          source venv/bin/activate
+          pip3 install -U pip setuptools wheel
+          pip3 install -r requirements.txt
+          
           # Stop the existing application
           pkill -f gunicorn || true  # If you use gunicorn
 
           # Start the new version (with gunicorn as an example)
-          gunicorn your_app:app -w 4 -b 0.0.0.0:8000 &
+          gunicorn server:app -w 4 -b 0.0.0.0:8000 &
