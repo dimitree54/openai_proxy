@@ -1,0 +1,32 @@
+name: Deploy to Vultr
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Execute commands over SSH on Vultr VM
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VULTR_VM_HOST }}
+        username: ${{ secrets.VULTR_VM_USERNAME }}
+        key: ${{ secrets.VULTR_VM_SSH_KEY }}
+        password: ${{ secrets.VULTR_VM_PASSWORD }}   # Included password as per your setup
+        script: |
+          sudo ufw allow 8000
+          export REPO_DIR=/root/openai_proxy
+          rm -rf $REPO_DIR
+          git clone -b ${{ GITHUB.REF_NAME }} https://github.com/dimitree54/openai_proxy.git $REPO_DIR
+          cd $REPO_DIR
+          
+          # Stop the existing application
+          pkill -f gunicorn || true  # If you use gunicorn
+
+          # Start the new version (with gunicorn as an example)
+          gunicorn your_app:app -w 4 -b 0.0.0.0:8000 &
