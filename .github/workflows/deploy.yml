@@ -34,8 +34,21 @@ jobs:
           pip3 install -U pip setuptools wheel
           pip3 install -r requirements.txt
           
-          # Stop the existing application
-          pkill -f gunicorn || true  # If you use gunicorn
-
-          # Start the new version (with gunicorn as an example)
-          screen -dmS gunicorn_session gunicorn server:app -w 4 -b 0.0.0.0:8000
+          systemctl stop openai_proxy || true
+          # Create the systemd service
+          echo "[Unit]
+          Description=Gunicorn instance for serving your app
+          After=network.target
+          
+          [Service]
+          User=root
+          WorkingDirectory=/root/openai_proxy
+          Environment=\"OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}\"
+          ExecStart=/root/openai_proxy/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:8000
+          
+          [Install]
+          WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy.service
+          
+          systemctl daemon-reload
+          systemctl enable openai_proxy
+          systemctl start openai_proxy
