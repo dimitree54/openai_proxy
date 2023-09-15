@@ -44,7 +44,7 @@ jobs:
           User=root
           WorkingDirectory=/root/openai_proxy
           Environment=\"OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}\"
-          ExecStart=/root/openai_proxy/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:8000
+          ExecStart=/root/openai_proxy/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:8000  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
           
           [Install]
           WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy.service
