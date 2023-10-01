@@ -50,7 +50,9 @@ def recognise_endpoint():
     smart_mode = request.form['smart_mode'].lower() == 'true'
     temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".m4a")
     m4a_file.save(temp_file.name)
+    temp_file.flush()
     transcript = recognise_speech(temp_file.name, smart_mode)
+    temp_file.close()
 
     return jsonify({'transcript': transcript})
 

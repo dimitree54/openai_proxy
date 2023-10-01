@@ -19,7 +19,7 @@ def test_endpoint(url: str, m4a_path: str, smart_mode: bool):
 # Test
 if __name__ == "__main__":
     test_endpoint(
-        "http://0.0.0.0:8000/recognise",
+        "https://rashchenko.xyz:443/recognise",
         str(Path(__file__).parent / "data" / "test_speech.mp3"),
         True
     )
