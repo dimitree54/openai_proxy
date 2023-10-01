@@ -56,7 +56,7 @@ def recognise_endpoint():
     try:
         m4a_file = request.files['m4a_file']
         smart_mode = request.form['smart_mode'].lower() == 'true'
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".m4a")
+        temp_file = tempfile.NamedTemporaryFile(delete=True, suffix=".m4a")
         m4a_file.save(temp_file.name)
         temp_file.flush()
         transcript = recognise_speech(temp_file.name, smart_mode)
