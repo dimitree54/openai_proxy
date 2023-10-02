@@ -24,9 +24,9 @@ jobs:
           sudo apt-get install -y git python3-venv
           
           export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          export REPO_DIR=/root/openai_proxy
+          export REPO_DIR=/root/openai_proxy_ipv4
           rm -rf $REPO_DIR
-          git clone -b ${{ GITHUB.REF_NAME }} https://github.com/dimitree54/openai_proxy.git $REPO_DIR
+          git clone -b ${{ GITHUB.REF_NAME }} https://github.com/dimitree54/openai_proxy_ipv4.git $REPO_DIR
           cd $REPO_DIR
           
           python3 -m venv venv
@@ -34,7 +34,8 @@ jobs:
           pip3 install -U pip setuptools wheel
           pip3 install -r requirements.txt
           
-          systemctl stop openai_proxy || true
+          systemctl stop openai_proxy_ipv4 || true
+          systemctl stop openai_proxy_ipv6 || true
           # Create the systemd service
           echo "[Unit]
           Description=Gunicorn instance for serving your app
@@ -42,13 +43,28 @@ jobs:
           
           [Service]
           User=root
-          WorkingDirectory=/root/openai_proxy
+          WorkingDirectory=/root/openai_proxy_ipv4
           Environment=\"OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}\"
-          ExecStart=/root/openai_proxy/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
+          ExecStart=/root/openai_proxy_ipv4/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
           
           [Install]
-          WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy.service
+          WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy_ipv4.service
+          
+          echo "[Unit]
+          Description=Gunicorn instance for serving your app
+          After=network.target
+          
+          [Service]
+          User=root
+          WorkingDirectory=/root/openai_proxy_ipv6
+          Environment=\"OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}\"
+          ExecStart=/root/openai_proxy_ipv6/venv/bin/gunicorn server:app -w 4 -b [::]:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
+          
+          [Install]
+          WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy_ipv6.service
           
           systemctl daemon-reload
-          systemctl enable openai_proxy
-          systemctl start openai_proxy
+          systemctl enable openai_proxy_ipv4
+          systemctl start openai_proxy_ipv4
+          systemctl enable openai_proxy_ipv6
+          systemctl start openai_proxy_ipv6
