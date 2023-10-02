@@ -24,9 +24,9 @@ jobs:
           sudo apt-get install -y git python3-venv
           
           export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          export REPO_DIR=/root/openai_proxy_ipv4
+          export REPO_DIR=/root/openai_proxy
           rm -rf $REPO_DIR
-          git clone -b ${{ GITHUB.REF_NAME }} https://github.com/dimitree54/openai_proxy_ipv4.git $REPO_DIR
+          git clone -b ${{ GITHUB.REF_NAME }} https://github.com/dimitree54/openai_proxy.git $REPO_DIR
           cd $REPO_DIR
           
           python3 -m venv venv
@@ -43,9 +43,9 @@ jobs:
           
           [Service]
           User=root
-          WorkingDirectory=/root/openai_proxy_ipv4
+          WorkingDirectory=/root/openai_proxy
           Environment=\"OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}\"
-          ExecStart=/root/openai_proxy_ipv4/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
+          ExecStart=/root/openai_proxy/venv/bin/gunicorn server:app -w 4 -b 0.0.0.0:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
           
           [Install]
           WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy_ipv4.service
@@ -56,9 +56,9 @@ jobs:
           
           [Service]
           User=root
-          WorkingDirectory=/root/openai_proxy_ipv6
+          WorkingDirectory=/root/openai_proxy
           Environment=\"OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}\"
-          ExecStart=/root/openai_proxy_ipv6/venv/bin/gunicorn server:app -w 4 -b [::]:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
+          ExecStart=/root/openai_proxy/venv/bin/gunicorn server:app -w 4 -b [::]:443  --certfile=/etc/letsencrypt/live/rashchenko.xyz/fullchain.pem --keyfile=/etc/letsencrypt/live/rashchenko.xyz/privkey.pem
           
           [Install]
           WantedBy=multi-user.target" | tee /etc/systemd/system/openai_proxy_ipv6.service
