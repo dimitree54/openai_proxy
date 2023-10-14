@@ -144,7 +144,7 @@ def edit_endpoint() -> Tuple[Response, int]:
         app.logger.error(f"Error during editing: {str(e)}")
         return jsonify({'error': 'Error during editing.'}), 400
     app.logger.info("Successful editing")
-    return jsonify({'edited_text': edited_text}), 200
+    return jsonify({'transcript': edited_text}), 200
 
 
 if __name__ == '__main__':
