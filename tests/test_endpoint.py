@@ -24,7 +24,7 @@ class MyTestCase(unittest.TestCase):
                 }
                 response = client.post('/recognise', content_type='multipart/form-data', data=data)
                 data = json.loads(response.data)
-                self.assertEqual(response.status_code, 200, data["error"])
+                self.assertEqual(response.status_code, 200)
                 self.assertIn('transcript', data)
                 self.assertEqual(data["transcript"], 'Replace world with planet.')
 
@@ -40,7 +40,7 @@ class MyTestCase(unittest.TestCase):
                 }
                 response = client.post('/edit', content_type='multipart/form-data', data=data)
                 data = json.loads(response.data)
-                self.assertEqual(response.status_code, 200, data["error"])
+                self.assertEqual(response.status_code, 200)
                 self.assertIn('transcript', data)
                 self.assertEqual(data["transcript"], 'Hello planet.')
 
