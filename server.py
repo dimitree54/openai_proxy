@@ -110,9 +110,12 @@ limiter = Limiter(
 @app.route('/recognise', methods=['POST'])
 @limiter.limit("10 per minute")
 def recognise_endpoint() -> Tuple[Response, int]:
-    if 'm4a_file' not in request.files or 'smart_mode' not in request.form:
-        app.logger.error("Missing m4a_file or smart_mode parameter")
-        return jsonify({'error': 'Missing m4a_file or smart_mode parameter'}), 400
+    if 'm4a_file' not in request.files:
+        app.logger.error("Missing m4a_file parameter")
+        return jsonify({'error': 'Missing m4a_file parameter'}), 400
+    if 'smart_mode' not in request.form:
+        app.logger.error("Missing smart_mode parameter")
+        return jsonify({'error': 'Missing smart_mode parameter'}), 400
     try:
         m4a_file = request.files['m4a_file']
         smart_mode = request.form['smart_mode'].lower() == 'true'
@@ -127,9 +130,12 @@ def recognise_endpoint() -> Tuple[Response, int]:
 @app.route('/edit', methods=['POST'])
 @limiter.limit("10 per minute")
 def edit_endpoint() -> Tuple[Response, int]:
-    if 'm4a_file' not in request.files or 'text' not in request.form:
-        app.logger.error("Missing m4a_file or text parameter")
-        return jsonify({'error': 'Missing m4a_file or text parameter'}), 400
+    if 'm4a_file' not in request.files:
+        app.logger.error("Missing m4a_file parameter")
+        return jsonify({'error': 'Missing m4a_file parameter'}), 400
+    if 'text' not in request.form:
+        app.logger.error("Missing text parameter")
+        return jsonify({'error': 'Missing text parameter'}), 400
     try:
         m4a_file = request.files['m4a_file']
         text = request.form['text']
