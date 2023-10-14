@@ -1,9 +1,11 @@
 import tempfile
 import openai
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from typing import Tuple
+
+from werkzeug.datastructures import FileStorage
 
 
 class SmartEditor:
@@ -71,6 +73,31 @@ class SpeechRecognizer:
         return transcript
 
 
+class SpeechService:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def recognise_speech(m4a_file: FileStorage, smart_mode: bool) -> str:
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".m4a") as temp_file:
+            m4a_file.save(temp_file.name)
+            temp_file.flush()
+            recognizer = SpeechRecognizer(smart_mode)
+            transcript = recognizer.recognise_speech(temp_file.name)
+        return transcript
+
+    @staticmethod
+    def edit_text(m4a_file: FileStorage, text: str) -> str:
+        with tempfile.NamedTemporaryFile(delete=True, suffix=".m4a") as temp_file:
+            m4a_file.save(temp_file.name)
+            temp_file.flush()
+            recognizer = SpeechRecognizer(False)
+            voice_commands = recognizer.recognise_speech(temp_file.name)
+            transcript_generator = SmartEditor()
+            edited_text = transcript_generator.edit(text, voice_commands)
+        return edited_text
+
+
 app = Flask(__name__)
 limiter = Limiter(
     get_remote_address,
@@ -82,46 +109,36 @@ limiter = Limiter(
 
 @app.route('/recognise', methods=['POST'])
 @limiter.limit("10 per minute")
-def recognise_endpoint() -> Tuple[str, int]:
+def recognise_endpoint() -> Tuple[Response, int]:
     if 'm4a_file' not in request.files or 'smart_mode' not in request.form:
         app.logger.error("Missing m4a_file or smart_mode parameter")
         return jsonify({'error': 'Missing m4a_file or smart_mode parameter'}), 400
     try:
         m4a_file = request.files['m4a_file']
         smart_mode = request.form['smart_mode'].lower() == 'true'
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".m4a") as temp_file:
-            m4a_file.save(temp_file.name)
-            temp_file.flush()
-            recognizer = SpeechRecognizer(smart_mode)
-            transcript = recognizer.recognise_speech(temp_file.name)
+        transcript = SpeechService.recognise_speech(m4a_file, smart_mode)
     except Exception as e:
         app.logger.error(f"Error during recognition: {str(e)}")
         return jsonify({'error': 'Error during recognition.'}), 400
     app.logger.info("Successful recognition")
-    return jsonify({'transcript': transcript})
+    return jsonify({'transcript': transcript}), 200
 
 
 @app.route('/edit', methods=['POST'])
 @limiter.limit("10 per minute")
-def edit_endpoint() -> Tuple[str, int]:
+def edit_endpoint() -> Tuple[Response, int]:
     if 'm4a_file' not in request.files or 'text' not in request.form:
         app.logger.error("Missing m4a_file or text parameter")
         return jsonify({'error': 'Missing m4a_file or text parameter'}), 400
     try:
         m4a_file = request.files['m4a_file']
         text = request.form['text']
-        with tempfile.NamedTemporaryFile(delete=True, suffix=".m4a") as temp_file:
-            m4a_file.save(temp_file.name)
-            temp_file.flush()
-            recognizer = SpeechRecognizer(False)
-            voice_commands = recognizer.recognise_speech(temp_file.name)
-            transcript_generator = SmartEditor()
-            edited_text = transcript_generator.edit(text, voice_commands)
+        edited_text = SpeechService.edit_text(m4a_file, text)
     except Exception as e:
         app.logger.error(f"Error during editing: {str(e)}")
         return jsonify({'error': 'Error during editing.'}), 400
     app.logger.info("Successful editing")
-    return jsonify({'edited_text': edited_text})
+    return jsonify({'edited_text': edited_text}), 200
 
 
 if __name__ == '__main__':
