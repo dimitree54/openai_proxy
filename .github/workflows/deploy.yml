@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -27,6 +27,15 @@ jobs:
       run: |
         # replace this with your test command
         python -m unittest
+
+  deploy:
+    name: Deploy to Vultr
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
     - name: Execute commands over SSH on Vultr VM
       uses: appleboy/ssh-action@master
